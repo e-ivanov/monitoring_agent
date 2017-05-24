@@ -1,0 +1,42 @@
+{% extends 'main.html' %}
+{% block container %}
+<div class="col-md-2"></div>
+<div class="col-md-8">
+    <h3 class="text-center">Конфигурационни параметри</h3><br /><br />
+    <form action="/" method="post" name="login">
+        {{ form.hidden_tag() }}
+        <div class="row" col-md-8>
+            <div class="form-group col-md-8">
+                <label class="col-md-3 control-lable" for="collectionInterval"> Интервал:</label>
+                <div class="col-md-4">
+                    {{ form.collectionInterval(size=80) }}<br>
+                    {% for error in form.collectionInterval.errors %}
+                    <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}<br>
+                </div>
+            </div>
+        </div>
+        <div class="row" col-md-8>
+            <div class="form-group col-md-8">
+                <label class="col-md-3 control-lable" for="serverId"> Сървър ID:</label>
+                <div class="col-md-4">
+                    {{ form.serverId(size=80) }}<br>
+                    {% for error in form.serverId.errors %}
+                    <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}<br>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-md-12">
+                <div class="col-md-6"></div>
+                <div class="col-md-5">
+                    <button type="submit" class="btn btn-info" value="Send">Запази</button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+<div class="col-md-2"></div>
+{% endblock %}
