@@ -1,2 +1,0 @@
-admin:"$2a$10$QGH16AkG6gdJME/K82zECuJ0NbjDeGB9nEkGXR1hl9JXHb7UYJBgO",
-susan:"bye"

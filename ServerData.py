@@ -1,15 +1,13 @@
-import new
-
 from CpuData import CpuData
 from DiskStats import DiskStats
 from MemoryStats import MemoryStats
 from NetworkStats import NetworkStats
-import datetime
+import datetime, uuid
 
 
 class ServerData:
-    def __init__(self, stat_provider):
-        self.__serverId = 1
+    def __init__(self, stat_provider, config):
+        self.__serverId = config.getServerId()
         self.__stat_provider = stat_provider
         self.__processList = []
         self.__memoryData = MemoryStats()
@@ -17,7 +15,8 @@ class ServerData:
         self.__diskData = DiskStats()
         self.__networkData = NetworkStats()
         self.__system_uptime = 0
-        self.__timestamp = 0;
+        self.__timestamp = 0
+        self.__uuid = ''
 
     def get_process_list(self):
         return self.__processList
@@ -34,6 +33,9 @@ class ServerData:
     def get_network_data(self):
         return self.__networkData
 
+    def get_uuid(self):
+        return self.__uuid
+
     def refreshData(self):
         self.__stat_provider.get_cpu_data(self.__cpuData)
         self.__stat_provider.get_disk_data(self.__diskData)
@@ -41,7 +43,8 @@ class ServerData:
         self.__stat_provider.get_network_data(self.__networkData)
         self.__system_uptime = self.__stat_provider.get_system_uptime()
         self.__processList = self.__stat_provider.get_process_list()
-        self.__timestamp = datetime.datetime.now();
+        self.__timestamp = datetime.datetime.now()
+        self.__uuid = str(uuid.uuid4())
 
     def __getstate__(self):
         state = {"serverId": self.__serverId,
@@ -51,7 +54,8 @@ class ServerData:
                  "networkData": self.__networkData,
                  "system_uptime": self.__system_uptime,
                  "processList": self.__processList,
-                 "timestamp": self.__timestamp}
+                 "timestamp": self.__timestamp,
+                 "uuid": self.__uuid}
         return state
 
     def publish(self):

@@ -1,47 +1,64 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from xxsubtype import spamdict
-
 from flask import Flask
+import bcrypt
 from flask_httpauth import HTTPBasicAuth
 from flask import render_template, flash, redirect, request
+from flask_wtf import Form
+from wtforms import StringField
+from wtforms.validators import DataRequired
 import pickle
-import bcrypt
-from ParamsForm import ParamsForm
+import sqlite3
+import logging
 
+conn = sqlite3.connect('users.db')
+logger = logging.getLogger("web")
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 users = {}
 config = None
 WTF_CSRF_ENABLED = True
 app.secret_key = 'myverylongsecretkey'
-def startApp(conf):
-    global config
+logger = None
+def start_app(conf, addr):
+    global config, logger
     config = conf
-    app.run(host="0.0.0.0")
-    app.debug=True
+    app.run(host=addr)
+    app.logger = logger
 
 
 
-def getUser(username):
-    global users
-    with open('creds.txt', 'r') as f:
-        for line in f:
-            splitLine = line.split(':')
-            user=splitLine[0]
-            password=splitLine[1]
-            filteredPass = password[2:-3]
-            users[user] = filteredPass
-    if username in users:
-        return users.get(username)
-    return None
+def get_user(username):
+    global conn
+    if not username:
+        return None
+    try:
+        c = conn.cursor()
+        c.execute('SELECT pass FROM users WHERE username=?', (username,))
+        result = c.fetchone()
+        return result
+    except Exception as e:
+        print (e)
 
 @auth.verify_password
 def verify_pw(username, plainpwd):
-    hashedpwd = getUser(username)
+    result_tuple = get_user(username)
+    if result_tuple is None:
+        return False
+    hashedpwd = result_tuple[0]
     if hashedpwd is None or username is None or plainpwd is None:
         return False
-    return bcrypt.hashpw(plainpwd, hashedpwd) == hashedpwd
+    try:
+        return bcrypt.checkpw(plainpwd.encode('utf8'), hashedpwd.encode('utf8'))
+    except Exception as e:
+        print (e)
+
+@app.errorhandler(500)
+def internal_error(exception):
+     app.logger.error(exception)
+     return render_template('500.html'), 500
 
 @app.route('/', methods=['GET', 'POST'])
 @auth.login_required
@@ -64,3 +81,6 @@ def index():
                            form=form,
                            config=config)
 
+class ParamsForm(Form):
+    collectionInterval = StringField('collectionInterval', validators=[DataRequired()])
+    serverId = StringField('serverId', validators=[DataRequired()])

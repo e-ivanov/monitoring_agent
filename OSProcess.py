@@ -10,6 +10,7 @@ class OSProcess(BaseStat):
         self.__status = ""
         self.__cpu_usage = 0.0
         self.__memory_usage = 0.0
+        self.__serverId = -1
 
     def set_pid(self, pid):
         self.__pid = pid;
@@ -29,11 +30,15 @@ class OSProcess(BaseStat):
     def set_memory_usage(self, memory_usage):
         self.__memory_usage = memory_usage
 
+    def set_server_id(self, server_id):
+        self.__serverId = server_id
+
     def __getstate__(self):
         state = {"pid": self.__pid,
                  "name":  self.__name,
                  "create_time": self.__create_time,
                  "status": self.__status,
                  "cpu_usage": self.__cpu_usage,
-                 "memory_usage": self.__memory_usage}
+                 "memory_usage": self.__memory_usage,
+                 "server_id": self.__serverId}
         return state

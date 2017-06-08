@@ -8,6 +8,9 @@ from OSProcess import OSProcess
 
 class PSUtilStatProvider(BaseStatProvider):
 
+    def __init__(self, config):
+        self.__config = config
+
     def get_disk_data(self, disk_data):
         disk_stats = psutil.disk_usage("/");
         disk_data.set_total_disk_space(disk_stats.total)
@@ -44,6 +47,7 @@ class PSUtilStatProvider(BaseStatProvider):
                 process.set_name(proc.name())
                 process.set_memory_usage(proc.memory_percent())
                 process.set_status(proc.status())
+                process.set_server_id(self.__config.getServerId())
                 process_list.append(process)
             except psutil.NoSuchProcess:
                 pass
