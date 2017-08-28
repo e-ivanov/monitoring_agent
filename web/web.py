@@ -7,7 +7,7 @@ from flask import render_template, flash, redirect, request
 from flask_wtf import Form
 from wtforms import StringField
 from wtforms.validators import DataRequired
-import pickle
+from version_checker import check_user_password
 import sqlite3
 import logging
 
@@ -51,7 +51,8 @@ def verify_pw(username, plainpwd):
     if hashedpwd is None or username is None or plainpwd is None:
         return False
     try:
-        return bcrypt.checkpw(plainpwd.encode('utf8'), hashedpwd.encode('utf8'))
+        return check_user_password(plainpwd, hashedpwd)
+
     except Exception as e:
         print (e)
 
@@ -66,15 +67,14 @@ def index():
     global config
     form = ParamsForm()
     if request.method == 'GET':
-        form.collectionInterval.data = int(config.getCollectionInterval())
-        form.serverId.data = int(config.getServerId())
+        form.collectionInterval.data = int(config.get("collection_interval", "interval"))
+        form.serverId.data = int(config.get("server_id", "serverid"))
     if form.validate_on_submit():
-        flash(u'Въведохте стойности интервал="%s", remember_me=%s' %
+        flash(u'Въведохте стойности интервал="%s", сървър=%s' %
               (form.collectionInterval.data, str(form.serverId.data)))
-        config.setCollectionInterval(int(form.collectionInterval.data))
-        config.setServerId(int(form.serverId.data))
-        with open('config.dat', 'wb') as file:
-            pickle.dump(config.toJSON(), file)
+        config.set("collection_interval", "interval", form.collectionInterval.data)
+        config.set("server_id", "serverid", form.serverId.data)
+        config.save()
         return redirect('/')
     return render_template('index.html',
                            title='Teams',

@@ -47,7 +47,7 @@ class PSUtilStatProvider(BaseStatProvider):
                 process.set_name(proc.name())
                 process.set_memory_usage(proc.memory_percent())
                 process.set_status(proc.status())
-                process.set_server_id(self.__config.getServerId())
+                process.set_server_id(self.__config.get("server_id", "serverid"))
                 process_list.append(process)
             except psutil.NoSuchProcess:
                 pass

@@ -7,7 +7,6 @@ from multiprocessing import Process
 from multiprocessing.managers import BaseManager
 import jsonpickle
 import pika
-from version_checker import build_config
 
 
 from PSUtilsStatProvider import PSUtilStatProvider
@@ -25,19 +24,16 @@ connection = None
 
 
 # configParser = ConfigParser.RawConfigParser()
-configParser = build_config()
-configFilePath = r'ip_config.txt'
-configParser.read(configFilePath)
-rabbit_address = configParser.get("ip", "rabbit_address")
+
 
 SERVER_ID = -1
 
 
 
-class CollectionManger(BaseManager):
+class ConfigManager(BaseManager):
     pass
 
-CollectionManger.register("Config", Config)
+ConfigManager.register("Config", Config)
 
 def connect_to_rabbit():
     global connection, channel, config, rabbit_address
@@ -62,7 +58,7 @@ def collect_perf_info(config):
             logger.info(s)
             if connection is None or connection.is_closed:
                 logger.info("Опит за реинициализиране на връзката с RabbitMQ")
-                rabbit_address = configParser.get("ip", "rabbit_address")
+                rabbit_address = config.get("ip", "rabbit_address")
                 connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbit_address, credentials=credentials))
                 channel = connection.channel()
                 channel.exchange_declare(exchange='server_data', type='direct', auto_delete=False)
@@ -73,23 +69,24 @@ def collect_perf_info(config):
                                   body=s,
                                   properties=properties)
             channel.basic_publish(exchange='server_data_stat',
-                                  routing_key='server_'+str(config.getServerId()),
+                                  routing_key='server_'+str(config.get("server_id", "serverid")),
                                   body=s,
                                   properties=properties)
-            logger.info("Успешно изпратено съобщение до RabbitMQ!");
-            time.sleep(config.getCollectionInterval())
+            logger.info("Успешно изпратено съобщение до RabbitMQ!")
+            time.sleep(config.getFloat("collection_interval", "interval"))
         except Exception as e:
             logger.error(e)
             logger.error("Грешка при опита за изпращане на съобщение до RabbitMQ" )
 
 
 if __name__ == '__main__':
-    m = CollectionManger()
+    m = ConfigManager()
     m.start()
     config = m.Config()
     psutilstat = PSUtilStatProvider(m.Config())
     server_data = ServerData(psutilstat, m.Config())
-    flaskProcess = Process(name="flaskApp", target=start_app, args=(config, configParser.get("ip", "flask_bind_address"),))
+    rabbit_address = config.get("ip", "rabbit_address")
+    flaskProcess = Process(name="flaskApp", target=start_app, args=(config, config.get("ip", "flask_bind_address"),))
     flaskProcess.start()
     logger.info("Started Flask process")
     connect_to_rabbit()

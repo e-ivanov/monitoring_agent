@@ -7,7 +7,7 @@ import datetime, uuid
 
 class ServerData:
     def __init__(self, stat_provider, config):
-        self.__serverId = config.getServerId()
+        self.__serverId = config.get("server_id", "serverid")
         self.__stat_provider = stat_provider
         self.__processList = []
         self.__memoryData = MemoryStats()

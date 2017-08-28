@@ -1,3 +1,5 @@
+import datetime
+
 from BaseStat import BaseStat
 
 
@@ -11,6 +13,7 @@ class OSProcess(BaseStat):
         self.__cpu_usage = 0.0
         self.__memory_usage = 0.0
         self.__serverId = -1
+        self.__timestamp = ""
 
     def set_pid(self, pid):
         self.__pid = pid;
@@ -33,6 +36,9 @@ class OSProcess(BaseStat):
     def set_server_id(self, server_id):
         self.__serverId = server_id
 
+    def set_timestamp(self, timestamp):
+        self.__timestamp = timestamp
+
     def __getstate__(self):
         state = {"pid": self.__pid,
                  "name":  self.__name,
@@ -40,5 +46,6 @@ class OSProcess(BaseStat):
                  "status": self.__status,
                  "cpu_usage": self.__cpu_usage,
                  "memory_usage": self.__memory_usage,
-                 "server_id": self.__serverId}
+                 "server_id": self.__serverId,
+                 "timestamp": datetime.datetime.now()}
         return state
